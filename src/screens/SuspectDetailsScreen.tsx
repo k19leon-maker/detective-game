@@ -4,6 +4,7 @@ import { evidenceList, suspects } from '../data/gameData';
 import { sarahInterrogation } from '../data/interrogationData';
 import { useGame } from '../context/GameContext';
 import type { Screen } from '../types/progression';
+import { SuspectAvatar } from '../components/SuspectAvatar';
 
 type Props = {
   onNavigate: (screen: Screen) => void;
@@ -34,7 +35,7 @@ export function SuspectDetailsScreen({ onNavigate, suspectId }: Props) {
       </button>
 
       <article className="profileHero">
-        <div className="avatar large">{suspect.avatarInitials}</div>
+        <SuspectAvatar className="large" suspect={suspect} />
         <div>
           <p className="eyebrow">{suspect.role}</p>
           <h2>{suspect.name}</h2>
@@ -60,6 +61,15 @@ export function SuspectDetailsScreen({ onNavigate, suspectId }: Props) {
           {relatedEvidence.map((evidence) => <span className="tag" key={evidence.id}>{evidence.title}</span>)}
         </div>
       </div>
+
+      {suspect.images && (
+        <div className="characterArchive">
+          <PhotoCase title="Полицейский архив" caption="Снимок из внутреннего профиля отдела расследований." src={suspect.images.archive} />
+          <PhotoCase title="Допрос" caption="Комната 2. Грей держится ровно, но почти не моргает." src={suspect.images.interrogation} />
+          <PhotoCase title="Наблюдение" caption="Третья ночь без сна после повторного просмотра материалов дела." src={suspect.images.sleepDeprived} />
+          <PhotoCase title="Критический момент" caption="Реакция на вопрос о пропавшей фотографии из отчета." src={suspect.images.emotionalCloseup} />
+        </div>
+      )}
 
       {suspect.id === 'sarah-miller' && (
         <article className="interrogationPanel">
@@ -125,6 +135,18 @@ function InfoBlock({ text, title }: { text: string; title: string }) {
       <h3>{title}</h3>
       <p>{text}</p>
     </article>
+  );
+}
+
+function PhotoCase({ caption, src, title }: { caption: string; src: string; title: string }) {
+  return (
+    <figure className="archivePhotoCard">
+      <img alt={title} src={src} />
+      <figcaption>
+        <strong>{title}</strong>
+        <span>{caption}</span>
+      </figcaption>
+    </figure>
   );
 }
 

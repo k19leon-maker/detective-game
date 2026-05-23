@@ -1,5 +1,6 @@
 import type { Screen } from '../types/progression';
 import { suspects } from '../data/gameData';
+import { SuspectAvatar } from '../components/SuspectAvatar';
 
 type Props = {
   onNavigate: (screen: Screen) => void;
@@ -25,7 +26,7 @@ export function SuspectsScreen({ onNavigate, onSelectSuspect }: Props) {
               onNavigate('suspect-detail');
             }}
           >
-            <div className="avatar">{suspect.avatarInitials}</div>
+            <SuspectAvatar suspect={suspect} />
             <div>
               <h3>{suspect.name}</h3>
               <span className="tag">{suspect.role}</span>

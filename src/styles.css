@@ -479,6 +479,52 @@ button {
   font-size: 20px;
 }
 
+.suspectPhoto {
+  position: relative;
+  width: 58px;
+  height: 68px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(241, 194, 125, 0.20);
+  border-radius: 18px;
+  background: #0c0a08;
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.38);
+}
+
+.suspectPhoto::after,
+.archivePhotoCard::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.62)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 5px);
+  mix-blend-mode: screen;
+}
+
+.suspectPhoto img,
+.archivePhotoCard img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: saturate(0.76) contrast(1.08) brightness(0.86);
+}
+
+.suspectPhoto.large {
+  width: 108px;
+  height: 138px;
+  border-radius: 24px;
+}
+
+.suspectPhoto.tiny {
+  width: 38px;
+  height: 44px;
+  border-radius: 12px;
+}
+
 .suspectCard {
   display: flex;
   gap: 13px;
@@ -505,6 +551,46 @@ button {
 .profileHero {
   display: flex;
   gap: 14px;
+}
+
+.characterArchive {
+  display: grid;
+  gap: 11px;
+}
+
+.archivePhotoCard {
+  position: relative;
+  min-height: 220px;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(241, 194, 125, 0.16);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.32);
+}
+
+.archivePhotoCard figcaption {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 2;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.archivePhotoCard figcaption strong {
+  color: #fff3df;
+}
+
+.archivePhotoCard figcaption span {
+  color: #cdbda5;
+  line-height: 1.4;
 }
 
 .cardGrid {
@@ -579,6 +665,12 @@ button {
 .pinCard span {
   margin-top: 5px;
   color: #bcae99;
+}
+
+.pinSuspectRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .noteBox textarea,
@@ -1170,7 +1262,8 @@ button {
 
 @media (min-width: 620px) {
   .board,
-  .cardGrid {
+  .cardGrid,
+  .characterArchive {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

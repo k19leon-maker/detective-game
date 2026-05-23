@@ -2,6 +2,7 @@ import { Link2, Send } from 'lucide-react';
 import { evidenceList, suspects } from '../data/gameData';
 import { useGame } from '../context/GameContext';
 import { useState } from 'react';
+import { SuspectAvatar } from '../components/SuspectAvatar';
 
 export function TheoryBoardScreen() {
   const { addNote, notes, state } = useGame();
@@ -22,8 +23,13 @@ export function TheoryBoardScreen() {
           <h3>Фигуранты</h3>
           {hotSuspects.map((suspect) => (
             <div className="pinCard suspectPin" key={suspect.id}>
-              <strong>{suspect.name}</strong>
-              <span>{suspect.role}</span>
+              <div className="pinSuspectRow">
+                <SuspectAvatar className="tiny" suspect={suspect} />
+                <div>
+                  <strong>{suspect.name}</strong>
+                  <span>{suspect.role}</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>

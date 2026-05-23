@@ -39,6 +39,13 @@ export const suspects: Suspect[] = [
     role: 'Детектив полиции',
     status: 'authority',
     avatarInitials: 'TG',
+    images: {
+      main: '/assets/characters/thomas-gray/main-portrait.jpg',
+      archive: '/assets/characters/thomas-gray/archive-photo.jpg',
+      interrogation: '/assets/characters/thomas-gray/interrogation.jpg',
+      sleepDeprived: '/assets/characters/thomas-gray/sleep-deprived.jpg',
+      emotionalCloseup: '/assets/characters/thomas-gray/emotional-closeup.jpg',
+    },
     shortDescription: 'Ведет расследование, но скрывает часть информации, защищая брата.',
     profile:
       'Грей знает процедуру слишком хорошо, чтобы ошибаться случайно. В деле есть пробелы, которые выглядят как осторожная защита, а не некомпетентность.',

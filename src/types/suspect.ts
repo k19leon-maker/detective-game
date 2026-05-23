@@ -6,6 +6,13 @@ export type Suspect = {
   role: string;
   status: 'victim' | 'suspect' | 'witness' | 'authority' | 'unknown';
   avatarInitials: string;
+  images?: {
+    main: string;
+    archive: string;
+    interrogation: string;
+    sleepDeprived: string;
+    emotionalCloseup: string;
+  };
   shortDescription: string;
   profile: string;
   motive: string;
