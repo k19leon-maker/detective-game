@@ -1,5 +1,8 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Radio, ShieldQuestion } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { evidenceList, suspects } from '../data/gameData';
+import { sarahInterrogation } from '../data/interrogationData';
+import { useGame } from '../context/GameContext';
 import type { Screen } from '../types/progression';
 
 type Props = {
@@ -8,8 +11,20 @@ type Props = {
 };
 
 export function SuspectDetailsScreen({ onNavigate, suspectId }: Props) {
+  const { askSarahQuestion, hasAskedSarahQuestion, isSarahInterrogationUnlocked, isTwistUnlocked, state } = useGame();
   const suspect = suspects.find((item) => item.id === suspectId) ?? suspects[0];
   const relatedEvidence = evidenceList.filter((evidence) => evidence.relatedSuspectIds.includes(suspect.id));
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const activeQuestion = useMemo(
+    () => sarahInterrogation.find((question) => question.id === activeQuestionId) ?? null,
+    [activeQuestionId],
+  );
+  const typedResponse = useTypingText(activeQuestion?.response ?? '', activeQuestionId ?? 'empty');
+
+  function ask(id: string) {
+    setActiveQuestionId(id);
+    askSarahQuestion(id);
+  }
 
   return (
     <section className="screenStack fadeIn">
@@ -45,6 +60,61 @@ export function SuspectDetailsScreen({ onNavigate, suspectId }: Props) {
           {relatedEvidence.map((evidence) => <span className="tag" key={evidence.id}>{evidence.title}</span>)}
         </div>
       </div>
+
+      {suspect.id === 'sarah-miller' && (
+        <article className="interrogationPanel">
+          <div className="interrogationHeader">
+            <div>
+              <p className="eyebrow">First interrogation</p>
+              <h3>Допрос Sarah Miller</h3>
+            </div>
+            <span>{state.askedQuestionIds.length}/{sarahInterrogation.length}</span>
+          </div>
+
+          {!isSarahInterrogationUnlocked ? (
+            <div className="lockedInterrogation">
+              <ShieldQuestion size={28} />
+              <p>Сара пока не готова говорить. Осмотрите часы в номере 314 и сопоставьте досье с перепиской Марка.</p>
+            </div>
+          ) : (
+            <>
+              <div className="questionGrid">
+                {sarahInterrogation.map((item) => (
+                  <button className={activeQuestionId === item.id ? 'active' : hasAskedSarahQuestion(item.id) ? 'asked' : ''} key={item.id} onClick={() => ask(item.id)}>
+                    {item.question}
+                  </button>
+                ))}
+              </div>
+
+              {activeQuestion ? (
+                <div className="dialogueWindow">
+                  <div className="dialogueLine detective">
+                    <strong>Вы</strong>
+                    <p>{activeQuestion.question}</p>
+                  </div>
+                  <div className="dialoguePause">пауза · запись идет</div>
+                  <div className="dialogueLine sarah">
+                    <strong>Sarah</strong>
+                    <p>{typedResponse}</p>
+                  </div>
+                  <small>{activeQuestion.cue}</small>
+                </div>
+              ) : (
+                <div className="dialogueWindow">
+                  <div className="dialoguePause">Выберите первый вопрос. Сара смотрит на диктофон, но молчит.</div>
+                </div>
+              )}
+
+              {isTwistUnlocked && (
+                <button className="twistButton" onClick={() => onNavigate('evidence')}>
+                  <Radio size={18} />
+                  В архиве появился аудиофайл без источника
+                </button>
+              )}
+            </>
+          )}
+        </article>
+      )}
     </section>
   );
 }
@@ -56,4 +126,22 @@ function InfoBlock({ text, title }: { text: string; title: string }) {
       <p>{text}</p>
     </article>
   );
+}
+
+function useTypingText(text: string, key: string) {
+  const [visible, setVisible] = useState('');
+
+  useEffect(() => {
+    setVisible('');
+    let index = 0;
+    const timer = window.setInterval(() => {
+      index += 3;
+      setVisible(text.slice(0, index));
+      if (index >= text.length) window.clearInterval(timer);
+    }, 18);
+
+    return () => window.clearInterval(timer);
+  }, [key, text]);
+
+  return visible;
 }

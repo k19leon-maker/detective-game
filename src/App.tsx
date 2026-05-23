@@ -33,7 +33,7 @@ function DetectiveApp() {
 
   function renderScreen() {
     if (screen === 'home') return <HomeScreen onNavigate={setScreen} />;
-    if (screen === 'case') return <CaseScreen />;
+    if (screen === 'case') return <CaseScreen onNavigate={setScreen} onSelectEvidence={setSelectedEvidenceId} onSelectSuspect={setSelectedSuspectId} />;
     if (screen === 'evidence') return <EvidenceScreen onNavigate={setScreen} onSelectEvidence={setSelectedEvidenceId} />;
     if (screen === 'evidence-detail') return <EvidenceDetailsScreen evidenceId={selectedEvidenceId} onNavigate={setScreen} />;
     if (screen === 'suspects') return <SuspectsScreen onNavigate={setScreen} onSelectSuspect={setSelectedSuspectId} />;

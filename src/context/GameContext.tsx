@@ -7,13 +7,20 @@ import type { GameState } from '../types/progression';
 type GameContextValue = {
   accusationResult: 'correct' | 'wrong' | null;
   addNote: (text: string) => void;
+  askSarahQuestion: (id: string) => void;
   availableEvidence: Evidence[];
   discoveredEvidence: Evidence[];
   discoverEvidence: (id: string) => void;
   finalAccusation: FinalAccusation | null;
   getEvidenceStatus: (evidence: Evidence) => 'available' | 'locked' | 'discovered';
+  hasAskedSarahQuestion: (id: string) => boolean;
+  hasInspectedSceneItem: (id: string) => boolean;
+  inspectSceneItem: (id: string) => void;
+  isSarahInterrogationUnlocked: boolean;
+  isTwistUnlocked: boolean;
   isEvidenceUnlocked: (evidence: Evidence) => boolean;
   notes: PlayerNote[];
+  playTwist: () => void;
   progressPercent: number;
   setFinalAccusation: (accusation: FinalAccusation) => void;
   state: GameState;
@@ -27,10 +34,13 @@ const GameContext = createContext<GameContextValue | null>(null);
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GameState>({
     currentStage: 1,
+    askedQuestionIds: [],
     discoveredEvidenceIds: initialDiscovered,
     finalAccusationSubmitted: false,
+    inspectedSceneItemIds: [],
     solvedClueIds: [],
     suspicionLevels: {},
+    twistPlayed: false,
   });
   const [notes, setNotes] = useState<PlayerNote[]>([]);
   const [finalAccusation, setFinalAccusation] = useState<FinalAccusation | null>(null);
@@ -42,6 +52,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const normalizedState = { ...state, currentStage };
     const discoveredEvidence = evidenceList.filter((evidence) => state.discoveredEvidenceIds.includes(evidence.id));
     const availableEvidence = evidenceList.filter((evidence) => isEvidenceUnlockedByState(evidence, normalizedState));
+    const isSarahInterrogationUnlocked =
+      state.inspectedSceneItemIds.includes('clock') &&
+      state.discoveredEvidenceIds.includes('case-file') &&
+      state.discoveredEvidenceIds.includes('msg-warning');
+    const isTwistUnlocked =
+      state.askedQuestionIds.includes('time-mismatch') &&
+      state.askedQuestionIds.includes('room-314') &&
+      state.discoveredEvidenceIds.includes('msg-warning');
 
     function discoverEvidence(id: string) {
       setState((current) => {
@@ -53,6 +71,54 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           discoveredEvidenceIds,
         };
       });
+    }
+
+    function inspectSceneItem(id: string) {
+      setState((current) => {
+        const inspectedSceneItemIds = current.inspectedSceneItemIds.includes(id)
+          ? current.inspectedSceneItemIds
+          : [...current.inspectedSceneItemIds, id];
+        const discoveredEvidenceIds = id === 'clock' || id === 'phone' || id === 'glass'
+          ? unique([...current.discoveredEvidenceIds, 'scene-photo'])
+          : current.discoveredEvidenceIds;
+        return {
+          ...current,
+          currentStage: calculateStage(discoveredEvidenceIds.length),
+          discoveredEvidenceIds,
+          inspectedSceneItemIds,
+        };
+      });
+    }
+
+    function askSarahQuestion(id: string) {
+      setState((current) => {
+        const askedQuestionIds = current.askedQuestionIds.includes(id)
+          ? current.askedQuestionIds
+          : [...current.askedQuestionIds, id];
+        const nextAskedQuestionIds = current.askedQuestionIds.includes(id) ? current.askedQuestionIds : [...current.askedQuestionIds, id];
+        const shouldUnlockTape = nextAskedQuestionIds.includes('time-mismatch') && nextAskedQuestionIds.includes('room-314');
+        const discoveredEvidenceIds = shouldUnlockTape
+          ? unique([...current.discoveredEvidenceIds, 'mark-tape-after-death'])
+          : current.discoveredEvidenceIds;
+        const solvedClueIds = shouldUnlockTape
+          ? unique([...current.solvedClueIds, 'sarah-time-collapse'])
+          : current.solvedClueIds;
+        return {
+          ...current,
+          askedQuestionIds,
+          currentStage: calculateStage(discoveredEvidenceIds.length),
+          discoveredEvidenceIds,
+          solvedClueIds,
+          suspicionLevels: {
+            ...current.suspicionLevels,
+            'sarah-miller': Math.min(100, (current.suspicionLevels['sarah-miller'] ?? 42) + 8),
+          },
+        };
+      });
+    }
+
+    function playTwist() {
+      setState((current) => (current.twistPlayed ? current : { ...current, twistPlayed: true }));
     }
 
     function addNote(text: string) {
@@ -83,6 +149,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return {
       accusationResult,
       addNote,
+      askSarahQuestion,
       availableEvidence,
       discoveredEvidence,
       discoverEvidence,
@@ -91,8 +158,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         if (state.discoveredEvidenceIds.includes(evidence.id)) return 'discovered';
         return isEvidenceUnlockedByState(evidence, normalizedState) ? 'available' : 'locked';
       },
+      hasAskedSarahQuestion: (id) => state.askedQuestionIds.includes(id),
+      hasInspectedSceneItem: (id) => state.inspectedSceneItemIds.includes(id),
+      inspectSceneItem,
+      isSarahInterrogationUnlocked,
+      isTwistUnlocked,
       isEvidenceUnlocked: (evidence) => isEvidenceUnlockedByState(evidence, normalizedState),
       notes,
+      playTwist,
       progressPercent: Math.round((state.discoveredEvidenceIds.length / evidenceList.length) * 100),
       setFinalAccusation,
       state: normalizedState,
@@ -110,6 +183,7 @@ export function useGame() {
 }
 
 function isEvidenceUnlockedByState(evidence: Evidence, state: GameState) {
+  if (evidence.id === 'mark-tape-after-death' && !state.solvedClueIds.includes('sarah-time-collapse')) return false;
   const requirement = evidence.unlockRequirement;
   if (!requirement) return true;
   if (requirement.stage && state.currentStage < requirement.stage) return false;
@@ -121,4 +195,8 @@ function isEvidenceUnlockedByState(evidence: Evidence, state: GameState) {
 function calculateStage(discoveredCount: number) {
   const stage = stages.reduce((result, item) => (discoveredCount >= item.requiredDiscoveries ? item.id : result), 1);
   return Math.min(stage, 6);
+}
+
+function unique<T>(items: T[]) {
+  return Array.from(new Set(items));
 }

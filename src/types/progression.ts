@@ -10,6 +10,9 @@ export type InvestigationStage = {
 export type GameState = {
   currentStage: number;
   discoveredEvidenceIds: string[];
+  inspectedSceneItemIds: string[];
+  askedQuestionIds: string[];
+  twistPlayed: boolean;
   solvedClueIds: string[];
   suspicionLevels: Record<string, number>;
   finalAccusationSubmitted: boolean;

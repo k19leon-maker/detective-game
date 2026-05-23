@@ -1,4 +1,5 @@
-import { ArrowLeft, Check, Lock } from 'lucide-react';
+import { ArrowLeft, Check, Lock, Radio } from 'lucide-react';
+import { useEffect } from 'react';
 import { evidenceList, suspects } from '../data/gameData';
 import { useGame } from '../context/GameContext';
 import type { Screen } from '../types/progression';
@@ -10,10 +11,14 @@ type Props = {
 };
 
 export function EvidenceDetailsScreen({ evidenceId, onNavigate }: Props) {
-  const { discoverEvidence, getEvidenceStatus } = useGame();
+  const { discoverEvidence, getEvidenceStatus, playTwist } = useGame();
   const evidence = evidenceList.find((item) => item.id === evidenceId) ?? evidenceList[0];
   const status = getEvidenceStatus(evidence);
   const relatedSuspects = suspects.filter((suspect) => evidence.relatedSuspectIds.includes(suspect.id));
+
+  useEffect(() => {
+    if (evidence.id === 'mark-tape-after-death' && status !== 'locked') playTwist();
+  }, [evidence.id, playTwist, status]);
 
   if (status === 'locked') {
     return (
@@ -46,9 +51,7 @@ export function EvidenceDetailsScreen({ evidenceId, onNavigate }: Props) {
         <h2>{evidence.title}</h2>
         <p className="sourceLine">{evidence.source}{evidence.timeLabel ? ` · ${evidence.timeLabel}` : ''}</p>
         <p className="leadText">{evidence.summary}</p>
-        <div className="evidenceDocument">
-          {evidence.content}
-        </div>
+        <EvidenceMaterial evidenceId={evidence.id} fallback={evidence.content} />
         <div className="tagRow">
           {evidence.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)}
         </div>
@@ -71,4 +74,58 @@ export function EvidenceDetailsScreen({ evidenceId, onNavigate }: Props) {
       </div>
     </section>
   );
+}
+
+function EvidenceMaterial({ evidenceId, fallback }: { evidenceId: string; fallback: string }) {
+  if (evidenceId === 'case-file') {
+    return (
+      <div className="policeScan">
+        <div className="scanStamp">BLACKWOOD PD · PRIMARY REPORT</div>
+        <h3>Смерть: Mark Reeves</h3>
+        <dl>
+          <div><dt>Локация</dt><dd>Black Pier Hotel, номер 314</dd></div>
+          <div><dt>Оценочное время смерти</dt><dd>22:17</dd></div>
+          <div><dt>Версия</dt><dd>Самоубийство, без признаков борьбы</dd></div>
+        </dl>
+        <p>{fallback}</p>
+      </div>
+    );
+  }
+
+  if (evidenceId === 'msg-warning') {
+    return (
+      <div className="messageEvidence">
+        <div className="phoneChrome">
+          <span>Sarah Miller</span>
+          <small>14 окт · архив телефона</small>
+        </div>
+        <div className="messageBubble">
+          <p>Если со мной что-то случится —<br />не верьте никому из них</p>
+          <span>22:31</span>
+        </div>
+        <div className="messageMeta">
+          <strong>Metadata</strong>
+          <p>Исходящее сообщение. Доставлено. Изменений временной метки не найдено.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (evidenceId === 'mark-tape-after-death') {
+    return (
+      <div className="audioReveal">
+        <div className="noiseLayer" />
+        <Radio size={28} />
+        <div className="tapeReels">
+          <span />
+          <span />
+        </div>
+        <p>шшш... щелчок... дыхание</p>
+        <blockquote>“Если вы слышите это... значит официальная версия уже опубликована.”</blockquote>
+        <small>Пауза 03 сек. Затем: “В номере 314 должен был умереть не я”.</small>
+      </div>
+    );
+  }
+
+  return <div className="evidenceDocument">{fallback}</div>;
 }
