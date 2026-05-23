@@ -1,4 +1,4 @@
-import { FileText, Fingerprint, Home, NotebookPen, Users } from 'lucide-react';
+import { FileText, Fingerprint, GitBranch, Home, Timer, Trophy, Users } from 'lucide-react';
 import type { Screen } from '../types/game';
 
 type Props = {
@@ -7,11 +7,13 @@ type Props = {
 };
 
 const items: Array<{ screen: Screen; label: string; icon: React.ReactNode }> = [
-  { screen: 'intro', label: 'Старт', icon: <Home size={19} /> },
+  { screen: 'home', label: 'Старт', icon: <Home size={19} /> },
   { screen: 'case', label: 'Дело', icon: <FileText size={19} /> },
   { screen: 'evidence', label: 'Улики', icon: <Fingerprint size={19} /> },
   { screen: 'suspects', label: 'Люди', icon: <Users size={19} /> },
-  { screen: 'notes', label: 'Заметки', icon: <NotebookPen size={19} /> },
+  { screen: 'timeline', label: 'Время', icon: <Timer size={19} /> },
+  { screen: 'theory', label: 'Связи', icon: <GitBranch size={19} /> },
+  { screen: 'final', label: 'Финал', icon: <Trophy size={19} /> },
 ];
 
 export function BottomNav({ currentScreen, onChange }: Props) {
